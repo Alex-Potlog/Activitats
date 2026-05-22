@@ -1,0 +1,1 @@
+Falta de ratelimiting, no podem evitar un DDOS.

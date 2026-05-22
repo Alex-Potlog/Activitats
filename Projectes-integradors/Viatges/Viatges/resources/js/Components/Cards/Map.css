@@ -1,0 +1,11 @@
+/* resources/js/Components/Cards/Map.css */
+.map-container .gm-style-cc,
+.map-container .gmnoprint,
+.map-container .grok-map-terms,
+.map-container a[href^="http://maps.google.com/maps"],
+.map-container a[href^="https://maps.google.com/maps"],
+.map-container img[src*="google_logo"],
+.map-container .gm-style svg[aria-label="Google"],
+.map-container .gm-style a {
+    display: none !important;
+}

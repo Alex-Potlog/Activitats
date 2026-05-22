@@ -1,0 +1,38 @@
+services:
+  mongodb:
+    image: mongodb/mongodb-community-server:8.0-ubuntu2204-slim
+    container_name: mongodb_server
+    restart: 'no'
+    environment: # docker-compose llegeix per defecte les variables d'entorn del fitxer .env
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
+    ports:
+      - "${MONGO_LOCAL_PORT}:${MONGO_DOCKER_PORT}" # Envoltat per cometes per evitar problemes amb els dos punts
+    volumes:
+      - db_data:/data/db
+
+  app:
+    depends_on:
+      - mongodb # Assegura que el servei de MongoDB s'iniciï abans que l'app de Node. Es defineix pel nom del servei
+    build: ./men-app
+    container_name: node_app
+    restart: 'no'
+    # Importa totes les variables del .env perquè l'app de Node les pugui llegir mitjançant process.env
+    env_file: ./.env
+    ports:
+      - "${NODE_LOCAL_PORT}:${NODE_DOCKER_PORT}"
+    environment:
+      # Passem variables específiques que el codi necessitarà per connectar-se
+      - MONGODB_HOST=mongodb
+      - MONGODB_USER=${MONGO_ROOT_USER}
+      - MONGODB_PASS=${MONGO_ROOT_PASSWORD}
+      - MONGODB_DB=${MONGO_DATABASE}
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./men-app:/usr/src/webserver
+      - /usr/src/webserver/node_modules
+
+volumes:
+  db_data:

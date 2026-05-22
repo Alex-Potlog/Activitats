@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	.ProseMirror.rich-text-editor,
+	.ProseMirror.rich-text-content {
+		min-height: 220px;
+		width: 100%;
+		outline: none;
+	}
+
+	.ProseMirror.rich-text-editor h1,
+	.ProseMirror.rich-text-content h1 {
+		margin: 0.75rem 0;
+		font-size: 1.875rem;
+		line-height: 2.25rem;
+		font-weight: 700;
+	}
+
+	.ProseMirror.rich-text-editor h2,
+	.ProseMirror.rich-text-content h2 {
+		margin: 0.75rem 0;
+		font-size: 1.5rem;
+		line-height: 2rem;
+		font-weight: 700;
+	}
+
+	.ProseMirror.rich-text-editor h3,
+	.ProseMirror.rich-text-content h3 {
+		margin: 0.75rem 0;
+		font-size: 1.25rem;
+		line-height: 1.75rem;
+		font-weight: 600;
+	}
+
+	.ProseMirror.rich-text-editor p,
+	.ProseMirror.rich-text-content p {
+		margin: 0.5rem 0;
+	}
+
+	.ProseMirror.rich-text-editor ul,
+	.ProseMirror.rich-text-content ul {
+		margin: 0.75rem 0;
+		padding-left: 1.5rem;
+		list-style: disc;
+	}
+
+	.ProseMirror.rich-text-editor ol,
+	.ProseMirror.rich-text-content ol {
+		margin: 0.75rem 0;
+		padding-left: 1.5rem;
+		list-style: decimal;
+	}
+
+	.ProseMirror.rich-text-editor li,
+	.ProseMirror.rich-text-content li {
+		margin: 0.25rem 0;
+	}
+
+	.ProseMirror.rich-text-editor blockquote,
+	.ProseMirror.rich-text-content blockquote {
+		margin: 1rem 0;
+		border-left: 4px solid theme('colors.principal');
+		padding-left: 1rem;
+		font-style: italic;
+		opacity: 0.9;
+	}
+
+	.ProseMirror.rich-text-editor a,
+	.ProseMirror.rich-text-content a {
+		color: theme('colors.principal');
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.dark .ProseMirror.rich-text-editor a,
+	.dark .ProseMirror.rich-text-content a {
+		color: theme('colors.secundario');
+	}
+}

@@ -1,0 +1,388 @@
+{
+  "info": {
+    "name": "BankApi",
+    "_postman_id": "b4e1c0e2-0001-4000-a000-000000000001",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "categoriaId", "value": "" },
+    { "key": "preguntaId", "value": "" },
+    { "key": "partidaId", "value": "" },
+    { "key": "respostaId", "value": "" },
+    { "key": "xsrfToken", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const token = pm.collectionVariables.get('xsrfToken');",
+          "if (token) {",
+          "  pm.request.headers.upsert({ key: 'X-XSRF-TOKEN', value: token });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Login (GET CSRF)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const jar = pm.cookies.jar();",
+              "const baseUrl = pm.variables.replaceIn('{{baseUrl}}');",
+              "jar.get(baseUrl, 'XSRF-TOKEN', (err, value) => {",
+              "  if (err || !value) {",
+              "    console.warn('XSRF-TOKEN cookie not found');",
+              "    return;",
+              "  }",
+              "  const token = decodeURIComponent(value);",
+              "  pm.collectionVariables.set('xsrfToken', token);",
+              "  console.log('Stored XSRF-TOKEN:', token);",
+              "});",
+              "",
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('XSRF-TOKEN cookie is set', () => {",
+              "  pm.expect(pm.cookies.has('XSRF-TOKEN')).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "text/html" }],
+        "url": { "raw": "{{baseUrl}}/login", "host": ["{{baseUrl}}"], "path": ["login"] }
+      }
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const baseUrl = pm.variables.replaceIn('{{baseUrl}}');",
+              "pm.sendRequest({ url: baseUrl + '/login', method: 'GET' }, (err, _res, cookies) => {",
+              "  if (err) return;",
+              "  const token = cookies && cookies.get && cookies.get('XSRF-TOKEN');",
+              "  if (token) pm.request.headers.upsert({ key: 'X-XSRF-TOKEN', value: decodeURIComponent(token) });",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/login", "host": ["{{baseUrl}}"], "path": ["login"] }
+      }
+    },
+    {
+      "name": "Categorias",
+      "item": [
+        {
+          "name": "Llista categorias",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/categorias", "host": ["{{baseUrl}}"], "path": ["api", "categorias"] }
+          }
+        },
+        {
+          "name": "Crea categoria",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const id = pm.response.json()?.data?.id;",
+                  "  if (id) pm.collectionVariables.set('categoriaId', id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Història\",\n  \"descripcio\": \"Preguntes d'història general\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/categorias", "host": ["{{baseUrl}}"], "path": ["api", "categorias"] }
+          }
+        },
+        {
+          "name": "Mostra categoria",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/categorias/{{categoriaId}}", "host": ["{{baseUrl}}"], "path": ["api", "categorias", "{{categoriaId}}"] }
+          }
+        },
+        {
+          "name": "Actualitza categoria",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Història actualitzada\",\n  \"descripcio\": \"Descripció nova\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/categorias/{{categoriaId}}", "host": ["{{baseUrl}}"], "path": ["api", "categorias", "{{categoriaId}}"] }
+          }
+        },
+        {
+          "name": "Elimina categoria",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/categorias/{{categoriaId}}", "host": ["{{baseUrl}}"], "path": ["api", "categorias", "{{categoriaId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Preguntas",
+      "item": [
+        {
+          "name": "Llista preguntas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/preguntas", "host": ["{{baseUrl}}"], "path": ["api", "preguntas"] }
+          }
+        },
+        {
+          "name": "Crea pregunta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const id = pm.response.json()?.data?.id ?? pm.response.json()?.id;",
+                  "  if (id) pm.collectionVariables.set('preguntaId', id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enunciat\": \"Quina és la capital de Catalunya?\",\n  \"categoria_id\": {{categoriaId}}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/preguntas", "host": ["{{baseUrl}}"], "path": ["api", "preguntas"] }
+          }
+        },
+        {
+          "name": "Mostra pregunta",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/preguntas/{{preguntaId}}", "host": ["{{baseUrl}}"], "path": ["api", "preguntas", "{{preguntaId}}"] }
+          }
+        },
+        {
+          "name": "Actualitza pregunta",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enunciat\": \"Enunciat actualitzat\",\n  \"categoria_id\": {{categoriaId}}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/preguntas/{{preguntaId}}", "host": ["{{baseUrl}}"], "path": ["api", "preguntas", "{{preguntaId}}"] }
+          }
+        },
+        {
+          "name": "Elimina pregunta",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/preguntas/{{preguntaId}}", "host": ["{{baseUrl}}"], "path": ["api", "preguntas", "{{preguntaId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Respostas",
+      "item": [
+        {
+          "name": "Llista respostas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/preguntas/{{preguntaId}}/respostas", "host": ["{{baseUrl}}"], "path": ["api", "preguntas", "{{preguntaId}}", "respostas"] }
+          }
+        },
+        {
+          "name": "Crea resposta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const id = pm.response.json()?.data?.id ?? pm.response.json()?.id;",
+                  "  if (id) pm.collectionVariables.set('respostaId', id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Barcelona\",\n  \"correcta\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/preguntas/{{preguntaId}}/respostas", "host": ["{{baseUrl}}"], "path": ["api", "preguntas", "{{preguntaId}}", "respostas"] }
+          }
+        },
+        {
+          "name": "Mostra resposta",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/respostas/{{respostaId}}", "host": ["{{baseUrl}}"], "path": ["api", "respostas", "{{respostaId}}"] }
+          }
+        },
+        {
+          "name": "Actualitza resposta",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Resposta actualitzada\",\n  \"correcta\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/respostas/{{respostaId}}", "host": ["{{baseUrl}}"], "path": ["api", "respostas", "{{respostaId}}"] }
+          }
+        },
+        {
+          "name": "Elimina resposta",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/respostas/{{respostaId}}", "host": ["{{baseUrl}}"], "path": ["api", "respostas", "{{respostaId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Partidas",
+      "item": [
+        {
+          "name": "Llista partidas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/partidas", "host": ["{{baseUrl}}"], "path": ["api", "partidas"] }
+          }
+        },
+        {
+          "name": "Crea partida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const id = pm.response.json()?.data?.id;",
+                  "  if (id) pm.collectionVariables.set('partidaId', id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valoracio\": \"Bona partida\",\n  \"preguntes\": [\n    { \"id\": {{preguntaId}}, \"correcta\": true }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/partidas", "host": ["{{baseUrl}}"], "path": ["api", "partidas"] }
+          }
+        },
+        {
+          "name": "Mostra partida",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/partidas/{{partidaId}}", "host": ["{{baseUrl}}"], "path": ["api", "partidas", "{{partidaId}}"] }
+          }
+        },
+        {
+          "name": "Actualitza partida",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valoracio\": \"Valoració actualitzada\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/partidas/{{partidaId}}", "host": ["{{baseUrl}}"], "path": ["api", "partidas", "{{partidaId}}"] }
+          }
+        },
+        {
+          "name": "Elimina partida",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/partidas/{{partidaId}}", "host": ["{{baseUrl}}"], "path": ["api", "partidas", "{{partidaId}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}
